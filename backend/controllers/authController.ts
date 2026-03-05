@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { z } from "zod";
-import { loginUser, registerUser } from "../services/authService";
+import { AuthServiceError, loginUser, registerUser } from "../services/authService";
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -19,8 +19,17 @@ export const register = async (req: Request, res: Response) => {
     const result = await registerUser(payload.name, payload.email, payload.password);
     res.status(201).json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Registration failed";
-    res.status(400).json({ message });
+    if (error instanceof z.ZodError) {
+      res.status(422).json({ message: "Invalid request payload", details: error.issues });
+      return;
+    }
+
+    if (error instanceof AuthServiceError) {
+      res.status(error.statusCode).json({ message: error.message });
+      return;
+    }
+
+    res.status(500).json({ message: "Registration failed" });
   }
 };
 
@@ -30,7 +39,16 @@ export const login = async (req: Request, res: Response) => {
     const result = await loginUser(payload.email, payload.password);
     res.status(200).json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Login failed";
-    res.status(400).json({ message });
+    if (error instanceof z.ZodError) {
+      res.status(422).json({ message: "Invalid request payload", details: error.issues });
+      return;
+    }
+
+    if (error instanceof AuthServiceError) {
+      res.status(error.statusCode).json({ message: error.message });
+      return;
+    }
+
+    res.status(500).json({ message: "Login failed" });
   }
 };

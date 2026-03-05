@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { registerRequest } from "@/services/authService";
 
@@ -25,6 +26,22 @@ export default function RegisterPage() {
       setSession(response);
       router.push("/dashboard");
     } catch (err) {
+      if (!axios.isAxiosError(err)) {
+        setError("Could not create account. Please try again.");
+        return;
+      }
+
+      const apiMessage = err.response?.data?.message;
+      if (typeof apiMessage === "string" && apiMessage.length > 0) {
+        setError(apiMessage);
+        return;
+      }
+
+      if (!err.response) {
+        setError("Could not connect to the API. Check backend URL and CORS settings.");
+        return;
+      }
+
       setError("Could not create account");
     } finally {
       setLoading(false);

@@ -29,6 +29,11 @@ Response `201`:
 }
 ```
 
+Possible errors:
+- `409` `{ "message": "Email already in use" }`
+- `422` `{ "message": "Invalid request payload", "details": [...] }`
+- `500` `{ "message": "Registration failed" }`
+
 ### `POST /auth/login`
 Log in an existing user.
 
@@ -41,6 +46,11 @@ Request body:
 ```
 
 Response `200`: same shape as register response.
+
+Possible errors:
+- `401` `{ "message": "Invalid credentials" }`
+- `422` `{ "message": "Invalid request payload", "details": [...] }`
+- `500` `{ "message": "Login failed" }`
 
 ## Projects (Protected)
 Use header: `Authorization: Bearer <token>`

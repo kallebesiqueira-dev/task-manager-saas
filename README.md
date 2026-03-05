@@ -79,9 +79,11 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 1. Create env files:
 ```bash
 cp .env.example .env
-cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
+
+Note: for Docker, keep `DATABASE_URL` from the root `.env` (host `postgres`).
+Using `backend/.env` inside containers can override it to `localhost` and break auth/database access.
 
 2. Start services:
 ```bash
