@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-start: #f8fafc;
+  --bg-end: #dbeafe;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, var(--bg-end), var(--bg-start));
+  color: #0f172a;
+}
