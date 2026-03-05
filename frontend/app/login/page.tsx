@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { loginRequest } from "@/services/authService";
 
@@ -24,6 +25,22 @@ export default function LoginPage() {
       setSession(response);
       router.push("/dashboard");
     } catch (err) {
+      if (!axios.isAxiosError(err)) {
+        setError("Could not complete login. Please try again.");
+        return;
+      }
+
+      const apiMessage = err.response?.data?.message;
+      if (typeof apiMessage === "string" && apiMessage.length > 0) {
+        setError(apiMessage);
+        return;
+      }
+
+      if (!err.response) {
+        setError("Could not connect to the API. Check backend URL and CORS settings.");
+        return;
+      }
+
       setError("Invalid credentials");
     } finally {
       setLoading(false);

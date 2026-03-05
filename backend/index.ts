@@ -11,10 +11,32 @@ dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4000);
+const configuredOrigins = (process.env.FRONTEND_URL ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL ?? "http://localhost:3000",
+    origin: (origin, callback) => {
+      // Allow requests without origin header (health checks, curl, server-to-server).
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const isConfiguredOrigin = configuredOrigins.includes(origin);
+      const isLocalOrigin = localOriginRegex.test(origin);
+
+      if (isConfiguredOrigin || isLocalOrigin) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   })
 );
