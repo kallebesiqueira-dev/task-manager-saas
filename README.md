@@ -54,6 +54,7 @@ JWT_SECRET=super-secret-jwt-key
 JWT_EXPIRES_IN=1d
 API_PORT=4000
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
+FRONTEND_URL=http://localhost:3000,http://127.0.0.1:3000,http://0.0.0.0:3000
 ```
 
 ### Backend `.env`
@@ -73,6 +74,11 @@ Copy from `frontend/.env.example`:
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
+
+For Vercel production deploys, set one of these strategies:
+- `NEXT_PUBLIC_API_URL=https://<your-backend-domain>/api`
+- or keep `NEXT_PUBLIC_API_URL` unset and configure `BACKEND_URL=https://<your-backend-domain>`
+	so Next.js proxies `/api/*` to the backend.
 
 ## Run with Docker
 
