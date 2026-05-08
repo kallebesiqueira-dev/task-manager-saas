@@ -1,48 +1,126 @@
-# Task Manager SaaS
+# TaskFlow
 
-Fullstack SaaS task manager inspired by Trello/Notion, built with Next.js, Express, Prisma, PostgreSQL and Docker.
+A full-stack SaaS task manager with a Kanban board, built with Next.js, Express, Prisma, PostgreSQL and Docker.
 
 ## Tech Stack
 
-- Frontend: Next.js (App Router), TypeScript, TailwindCSS, Axios, React Query, dnd-kit
-- Backend: Node.js, Express, TypeScript, Prisma ORM, JWT auth, bcrypt
-- Database: PostgreSQL
-- DevOps: Docker, docker-compose
-
-## Monorepo Structure
-
-```text
-task-manager-saas
-├── frontend
-│   ├── app
-│   ├── components
-│   ├── services
-│   └── hooks
-├── backend
-│   ├── controllers
-│   ├── routes
-│   ├── middleware
-│   ├── services
-│   └── prisma
-├── docker-compose.yml
-├── API.md
-└── README.md
-```
+| Layer | Technologies |
+|---|---|
+| Frontend | Next.js 14 (App Router), TypeScript, TailwindCSS, React Query, dnd-kit, lucide-react |
+| Backend | Node.js, Express, TypeScript, Prisma ORM, JWT, bcrypt, Zod |
+| Database | PostgreSQL 16 |
+| DevOps | Docker, docker-compose |
 
 ## Features
 
-- JWT authentication (register/login)
-- Protected API routes
-- CRUD projects
-- CRUD tasks inside projects
-- Task status workflow (`TODO`, `IN_PROGRESS`, `DONE`)
-- Drag-and-drop task movement between kanban columns
-- Dashboard with counters + recent activity
+- JWT authentication — register and login with hashed passwords
+- Protected routes on both frontend and backend
+- Create, rename and delete projects
+- Create, edit and delete tasks inside projects
+- Task status workflow: `TODO → IN_PROGRESS → DONE`
+- Drag-and-drop Kanban board
+- Dashboard with stats (projects, to-do, in-progress, done) and recent activity
+- Professional UI with modals, skeleton loading states and empty states
+
+## Project Structure
+
+```
+taskflow/
+├── frontend/               # Next.js app
+│   ├── app/                # Pages (login, register, dashboard, board)
+│   ├── components/         # UI components (Kanban, ProjectCard, Modal, AuthGuard)
+│   ├── hooks/              # React Query hooks
+│   ├── services/           # Axios API clients
+│   ├── context/            # Auth context
+│   └── types/              # TypeScript interfaces
+├── backend/                # Express API
+│   ├── controllers/        # Route handlers
+│   ├── routes/             # Express routers
+│   ├── services/           # Business logic
+│   ├── middleware/         # Auth + error handling
+│   ├── utils/              # JWT helpers
+│   └── prisma/             # Schema + Prisma client
+├── docker-compose.yml
+├── API.md                  # Full API reference
+└── README.md
+```
+
+## Quick Start (Docker)
+
+### 1. Create env files
+
+```bash
+cp .env.example .env
+cp frontend/.env.example frontend/.env
+```
+
+### 2. Start all services
+
+```bash
+docker compose up --build
+```
+
+> First run downloads images and compiles both apps — takes 2–3 minutes.
+
+### 3. Apply database schema (first time only)
+
+```bash
+docker compose exec backend npx prisma db push
+```
+
+### 4. Open the app
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:4000/api |
+| Health check | http://localhost:4000/health |
+
+Create a new account at **http://localhost:3000/register** to get started.
+
+---
+
+## Run Locally (without Docker)
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure the backend
+
+Copy `backend/.env.example` to `backend/.env` and set your local PostgreSQL connection:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=1d
+PORT=4000
+FRONTEND_URL=http://localhost:3000
+```
+
+### 3. Configure the frontend
+
+Copy `frontend/.env.example` to `frontend/.env`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+```
+
+### 4. Apply database schema and start
+
+```bash
+npm --workspace backend run prisma:generate
+cd backend && npx prisma db push && cd ..
+npm run dev
+```
+
+---
 
 ## Environment Variables
 
-### Root `.env`
-Copy from `.env.example`:
+### Root `.env` (used by Docker Compose)
 
 ```bash
 POSTGRES_USER=postgres
@@ -57,106 +135,30 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 FRONTEND_URL=http://localhost:3000,http://127.0.0.1:3000,http://0.0.0.0:3000
 ```
 
-### Backend `.env`
-Copy from `backend/.env.example`:
+> The `DATABASE_URL` in the root `.env` uses `@postgres` (Docker service hostname). For local dev, use `@localhost` in `backend/.env`.
 
-```bash
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
-JWT_SECRET=super-secret-jwt-key
-JWT_EXPIRES_IN=1d
-PORT=4000
-FRONTEND_URL=http://localhost:3000
-```
+### Vercel / Production
 
-### Frontend `.env`
-Copy from `frontend/.env.example`:
+Set in your hosting dashboard:
 
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:4000/api
-```
-
-For Vercel production deploys, set one of these strategies:
 - `NEXT_PUBLIC_API_URL=https://<your-backend-domain>/api`
-- or keep `NEXT_PUBLIC_API_URL` unset and configure `BACKEND_URL=https://<your-backend-domain>`
-	so Next.js proxies `/api/*` to the backend.
 
-## Run with Docker
+Or leave `NEXT_PUBLIC_API_URL` unset and set `BACKEND_URL=https://<your-backend-domain>` so Next.js proxies `/api/*` requests to the backend.
 
-1. Create env files:
-```bash
-cp .env.example .env
-cp frontend/.env.example frontend/.env
-```
+---
 
-Note: for Docker, keep `DATABASE_URL` from the root `.env` (host `postgres`).
-Using `backend/.env` inside containers can override it to `localhost` and break auth/database access.
+## NPM Scripts
 
-2. Start services:
-```bash
-docker compose up --build
-```
+| Command | Description |
+|---|---|
+| `npm run dev` | Start frontend + backend in parallel |
+| `npm run build` | Build both apps |
+| `npm --workspace backend run dev` | Backend only |
+| `npm --workspace frontend run dev` | Frontend only |
+| `npm --workspace backend run prisma:migrate` | Run Prisma migrations |
 
-3. Run Prisma migration (first time):
-```bash
-docker compose exec backend npm run prisma:migrate
-```
-
-4. App URLs:
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:4000/api`
-- Health check: `http://localhost:4000/health`
-
-## Run Locally (without Docker)
-
-1. Install dependencies at root:
-```bash
-npm install
-```
-
-2. Setup PostgreSQL and update `backend/.env` `DATABASE_URL`.
-
-3. Generate Prisma client and run migration:
-```bash
-npm --workspace backend run prisma:generate
-npm --workspace backend run prisma:migrate
-```
-
-4. Start apps in parallel:
-```bash
-npm run dev
-```
-
-## Scripts
-
-### Root
-- `npm run dev`
-- `npm run build`
-
-### Backend
-- `npm --workspace backend run dev`
-- `npm --workspace backend run build`
-- `npm --workspace backend run prisma:migrate`
-
-### Frontend
-- `npm --workspace frontend run dev`
-- `npm --workspace frontend run build`
-
-## GitHub Publishing
-
-1. Initialize git and first commit:
-```bash
-git init
-git add .
-git commit -m "feat: initial fullstack task manager saas"
-```
-
-2. Create a GitHub repo, then add remote and push:
-```bash
-git remote add origin <your-repo-url>
-git branch -M main
-git push -u origin main
-```
+---
 
 ## API Reference
 
-See `API.md` for complete endpoint docs.
+See [`API.md`](./API.md) for the full endpoint documentation.

@@ -16,7 +16,8 @@ const configuredOrigins = (process.env.FRONTEND_URL ?? "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/;
+const privateNetworkOriginRegex = /^http:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
 
 app.use(
   cors({
@@ -29,12 +30,16 @@ app.use(
 
       const isConfiguredOrigin = configuredOrigins.includes(origin);
       const isLocalOrigin = localOriginRegex.test(origin);
+      const isPrivateNetworkOrigin = privateNetworkOriginRegex.test(origin);
+      const isDevHttpOrigin = process.env.NODE_ENV !== "production" && /^http:\/\/.+/.test(origin);
 
-      if (isConfiguredOrigin || isLocalOrigin) {
+      if (isConfiguredOrigin || isLocalOrigin || isPrivateNetworkOrigin || isDevHttpOrigin) {
         callback(null, true);
         return;
       }
 
+      // eslint-disable-next-line no-console
+      console.warn(`CORS blocked for origin: ${origin}. Allowed configured origins: ${configuredOrigins.join(", ") || "(none)"}`);
       callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
