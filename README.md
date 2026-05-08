@@ -2,6 +2,16 @@
 
 A full-stack SaaS task manager with a Kanban board, built with Next.js, Express, Prisma, PostgreSQL and Docker.
 
+## Screenshots
+
+| Login | Dashboard |
+|---|---|
+| ![Login](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
+
+| Kanban Board |
+|---|
+| ![Board](screenshots/board.png) |
+
 ## Tech Stack
 
 | Layer | Technologies |
